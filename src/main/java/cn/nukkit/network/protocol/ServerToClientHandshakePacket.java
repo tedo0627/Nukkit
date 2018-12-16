@@ -2,14 +2,12 @@ package cn.nukkit.network.protocol;
 
 public class ServerToClientHandshakePacket extends DataPacket {
 
+    public String token;
+
     @Override
     public byte pid() {
         return ProtocolInfo.SERVER_TO_CLIENT_HANDSHAKE_PACKET;
     }
-
-    public String publicKey;
-    public String serverToken;
-    public String privateKey;
 
     @Override
     public void decode() {
@@ -18,6 +16,8 @@ public class ServerToClientHandshakePacket extends DataPacket {
 
     @Override
     public void encode() {
-        //TODO
+        this.reset();
+
+        this.putString(token);
     }
 }

@@ -71,7 +71,10 @@ import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.nimbusds.jose.*;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -83,15 +86,19 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import sun.security.ec.ECKeyPairGenerator;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
@@ -2080,24 +2087,32 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     if (!loginChainData.isXboxAuthed() && server.getPropertyBoolean("xbox-auth")) {
                         kick(PlayerKickEvent.Reason.UNKNOWN, "disconnectionScreen.notAuthenticated", false);
                     } else {
-                        String key = new String(Base64.getDecoder().decode(this.loginChainData.getIdentityPublicKey()));
                         try {
-                            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-                            SecureRandom secureRandom = SecureRandom.getInstance("Windows-PRNG");
+                            byte[] key = Base64.getDecoder().decode(this.loginChainData.getIdentityPublicKey());
+                            X509EncodedKeySpec spec = new X509EncodedKeySpec(key);
+                            KeyFactory factory = KeyFactory.getInstance("EC");
+                            ECPublicKey remotePublicKey = (ECPublicKey) factory.generatePublic(spec);
 
-                            keyPairGenerator.initialize(384, secureRandom);
-                            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+                            ECKeyPairGenerator gen = new ECKeyPairGenerator();
+                            gen.initialize(remotePublicKey.getParams(), SecureRandom.getInstance("Windows-PRNG"));
+                            KeyPair pair = gen.generateKeyPair();
+
+                            ECPublicKey ecPublicKey = (ECPublicKey) pair.getPublic();
+                            ECPrivateKey ecPrivateKey = (ECPrivateKey) pair.getPrivate();
+
+                            byte[] secretPrepend = "RANDOM SECRET".getBytes(Charset.forName("utf-8"));
 
                             JWTClaimsSet payload = new JWTClaimsSet.Builder()
-                                    .claim("salt", Base64.getEncoder().encodeToString("RANDOM SECRET".getBytes()))
+                                    .claim("salt", new String(Base64.getEncoder().encode(secretPrepend)))
                                     .build();
 
-                            ECKey jwk = new ECKey.Builder(ECKey.Curve.P_384, (ECPublicKey) keyPair.getPublic())
-                                    .privateKey(keyPair.getPrivate())
+                            ECKey jwk = new ECKey.Builder(ECKey.Curve.P_384, ecPublicKey)
+                                    .privateKey(ecPrivateKey)
                                     .build();
 
                             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES384)
                                     .keyID(jwk.getKeyID())
+                                    .x509CertURL(URI.create(Base64.getEncoder().encodeToString(ecPublicKey.getEncoded())))
                                     .type(JOSEObjectType.JWT)
                                     .build();
 
@@ -2109,7 +2124,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                             handshakePacket.token = signedJWT.serialize();
 
                             this.dataPacket(handshakePacket);
-                        } catch (JOSEException | NoSuchAlgorithmException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }

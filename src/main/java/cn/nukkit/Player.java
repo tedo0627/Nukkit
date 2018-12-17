@@ -88,12 +88,12 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import sun.security.ec.ECKeyPairGenerator;
 
+import javax.crypto.KeyAgreement;
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.SecureRandom;
@@ -2107,10 +2107,13 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                                 throw new InvalidClassException("Encryption Disable!!");
                             }
 
-                            byte[] secretPrepend = "RANDOM SECRET".getBytes(Charset.forName("utf-8"));
+                            KeyAgreement keyAgreement = KeyAgreement.getInstance("ECDH");
+                            keyAgreement.init(ecPrivateKey);
+                            keyAgreement.doPhase(remotePublicKey, true);
+                            byte[] sharedSecret = keyAgreement.generateSecret();
 
                             JWTClaimsSet payload = new JWTClaimsSet.Builder()
-                                    .claim("salt", new String(Base64.getEncoder().encode(secretPrepend)))
+                                    .claim("salt", new String(Base64.getEncoder().encode(sharedSecret)))
                                     .build();
 
                             ECKey jwk = new ECKey.Builder(ECKey.Curve.P_384, ecPublicKey)

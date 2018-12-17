@@ -1,5 +1,7 @@
 package cn.nukkit.utils;
 
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.util.UUID;
 
 /**
@@ -40,4 +42,8 @@ public interface LoginChainData {
     String getCapeData();
 
     int getUIProfile();
+
+    ECPublicKey getPublicKey();
+
+    ECPrivateKey getPrivateKey();
 }

@@ -89,6 +89,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import sun.security.ec.ECKeyPairGenerator;
 
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteOrder;
@@ -2099,6 +2100,12 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
                             ECPublicKey ecPublicKey = (ECPublicKey) pair.getPublic();
                             ECPrivateKey ecPrivateKey = (ECPrivateKey) pair.getPrivate();
+
+                            if (this.loginChainData instanceof ClientChainData) {
+                                ((ClientChainData) this.loginChainData).setKeyPair(ecPublicKey, ecPrivateKey);
+                            } else {
+                                throw new InvalidClassException("Encryption Disable!!");
+                            }
 
                             byte[] secretPrepend = "RANDOM SECRET".getBytes(Charset.forName("utf-8"));
 

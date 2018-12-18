@@ -8,10 +8,9 @@ import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.Zlib;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.util.*;
 
 /**
  * author: MagicDroidX
@@ -129,9 +128,35 @@ public class Network {
     public void processBatch(BatchPacket packet, Player player) {
         byte[] data;
         try {
-            data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
+            if (!player.isEncrypt()) {
+                data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
+            } else {
+                byte[] buffer = player.getDecrypt().update(packet.payload);
+
+                byte[] payload = new byte[buffer.length - 8];
+                byte[] calculateCheckSum = new byte[8];
+                System.arraycopy(buffer, 0, payload, 0, buffer.length - 8);
+                System.arraycopy(buffer, buffer.length - 8, calculateCheckSum, 0, 8);
+
+                BinaryStream binaryStream = new BinaryStream();
+                binaryStream.putLLong(player.decryptCounter++);
+                binaryStream.put(payload);
+                binaryStream.put(player.sharedKey);
+
+                MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+                messageDigest.update(binaryStream.getBuffer());
+                byte[] result = messageDigest.digest();
+                byte[] checkSum = new byte[8];
+                System.arraycopy(result, 0, checkSum, 0, 8);
+
+                if (!Arrays.equals(calculateCheckSum, checkSum)) {
+                    throw new IOException("Not Decrypt");
+                }
+
+                data = Zlib.inflate(payload, 64 * 1024 * 1024);
+            }
         } catch (Exception e) {
-            Server.getInstance().getLogger().info(e.toString());
+            Server.getInstance().getLogger().info(e.toString() + " EncryptState: " + player.isEncrypt());
             return;
         }
 
@@ -151,6 +176,8 @@ public class Network {
                     pk.decode();
 
                     packets.add(pk);
+                } else {
+                    this.getServer().getLogger().info("first: " + String.format("%x", buf[0]));
                 }
             }
 
@@ -228,6 +255,7 @@ public class Network {
         this.registerPacket(ProtocolInfo.CHANGE_DIMENSION_PACKET, ChangeDimensionPacket.class);
         this.registerPacket(ProtocolInfo.CHUNK_RADIUS_UPDATED_PACKET, ChunkRadiusUpdatedPacket.class);
         this.registerPacket(ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket.class);
+        this.registerPacket(ProtocolInfo.CLIENT_TO_SERVER_HANDSHAKE_PACKET, ClientToServerHandshakePacket.class);
         this.registerPacket(ProtocolInfo.COMMAND_REQUEST_PACKET, CommandRequestPacket.class);
         this.registerPacket(ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket.class);
         this.registerPacket(ProtocolInfo.CONTAINER_OPEN_PACKET, ContainerOpenPacket.class);

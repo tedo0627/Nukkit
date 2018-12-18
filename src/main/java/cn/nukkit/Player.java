@@ -88,7 +88,10 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import sun.security.ec.ECKeyPairGenerator;
 
+import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.net.InetSocketAddress;
@@ -96,6 +99,7 @@ import java.net.URI;
 import java.nio.ByteOrder;
 import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
@@ -160,6 +164,9 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     public long creationTime = 0;
     public Block breakingBlock = null;
     public int pickedXPOrb = 0;
+    public long encryptCounter;
+    public long decryptCounter;
+    public byte[] sharedKey;
     protected int windowCnt = 4;
     protected Map<Inventory, Integer> windows;
     protected int messageCounter = 2;
@@ -209,6 +216,9 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     private LoginChainData loginChainData;
     private AsyncTask preLoginEventTask = null;
     private boolean foodEnabled = true;
+    private boolean isEncrypt = false;
+    private Cipher encrypt = null;
+    private Cipher decrypt = null;
 
     public Player(SourceInterface interfaz, Long clientID, String ip, int port) {
         super(null, new CompoundTag());
@@ -280,6 +290,18 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             throw new RuntimeException(e);
         }
         return batch;
+    }
+
+    public Cipher getEncryptor() {
+        return this.encrypt;
+    }
+
+    public Cipher getDecrypt() {
+        return this.decrypt;
+    }
+
+    public boolean isEncrypt() {
+        return this.isEncrypt;
     }
 
     public int getStartActionTick() {
@@ -2107,13 +2129,31 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                                 throw new InvalidClassException("Encryption Disable!!");
                             }
 
+                            String salt = "Y1ghr56d";
+
                             KeyAgreement keyAgreement = KeyAgreement.getInstance("ECDH");
                             keyAgreement.init(ecPrivateKey);
                             keyAgreement.doPhase(remotePublicKey, true);
                             byte[] sharedSecret = keyAgreement.generateSecret();
 
+                            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+                            messageDigest.update(sharedSecret);
+                            sharedKey = messageDigest.digest();
+
+                            byte[] iv = new byte[16];
+                            System.arraycopy(sharedKey, 0, iv, 0, 16);
+
+                            SecretKeySpec secretKey = new SecretKeySpec(sharedKey, "AES");
+                            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+
+                            decrypt = Cipher.getInstance("AES/CFB8/NoPadding");
+                            decrypt.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+
+                            encrypt = Cipher.getInstance("AES/CFB8/NoPadding");
+                            encrypt.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+
                             JWTClaimsSet payload = new JWTClaimsSet.Builder()
-                                    .claim("salt", new String(Base64.getEncoder().encode(sharedSecret)))
+                                    .claim("salt", "")
                                     .build();
 
                             ECKey jwk = new ECKey.Builder(ECKey.Curve.P_384, ecPublicKey)
@@ -2134,6 +2174,8 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                             handshakePacket.token = signedJWT.serialize();
 
                             this.dataPacket(handshakePacket);
+
+                            isEncrypt = true;
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -2180,6 +2222,9 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     } else {
                         this.setSkin(loginPacket.skin);
                     }
+                    break;
+                case ProtocolInfo.CLIENT_TO_SERVER_HANDSHAKE_PACKET:
+                    this.getServer().getLogger().info("CLIENT_TO_SERVER_HANDSHAKE_PACKET");
 
                     PlayerPreLoginEvent playerPreLoginEvent;
                     this.server.getPluginManager().callEvent(playerPreLoginEvent = new PlayerPreLoginEvent(this, "Plugin reason"));
@@ -2216,6 +2261,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
                     this.processLogin();
                     break;
+
                 case ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET:
                     ResourcePackClientResponsePacket responsePacket = (ResourcePackClientResponsePacket) packet;
                     switch (responsePacket.responseStatus) {

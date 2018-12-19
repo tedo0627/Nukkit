@@ -14,13 +14,11 @@ import cn.nukkit.raknet.protocol.packet.PING_DataPacket;
 import cn.nukkit.raknet.server.RakNetServer;
 import cn.nukkit.raknet.server.ServerHandler;
 import cn.nukkit.raknet.server.ServerInstance;
-import cn.nukkit.utils.Binary;
-import cn.nukkit.utils.MainLogger;
-import cn.nukkit.utils.Utils;
-import cn.nukkit.utils.Zlib;
+import cn.nukkit.utils.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.security.MessageDigest;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,21 +29,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RakNetInterface implements ServerInstance, AdvancedSourceInterface {
 
     private final Server server;
-
-    private Network network;
-
     private final RakNetServer raknet;
-
     private final Map<String, Player> players = new ConcurrentHashMap<>();
-
     private final Map<String, Integer> networkLatency = new ConcurrentHashMap<>();
-
     private final Map<Integer, String> identifiers = new ConcurrentHashMap<>();
-
     private final Map<String, Integer> identifiersACK = new ConcurrentHashMap<>();
-
     private final ServerHandler handler;
-
+    private Network network;
     private int[] channelCounts = new int[256];
 
     public RakNetInterface(Server server) {
@@ -267,6 +257,31 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                     throw new RuntimeException(e);
                 }
             }
+
+            if (player.isEncrypt()) {
+                BinaryStream binaryStream = new BinaryStream();
+                binaryStream.putLLong(player.encryptCounter++);
+                binaryStream.put(buffer);
+                binaryStream.put(player.sharedKey);
+
+                try {
+                    MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+                    messageDigest.update(binaryStream.getBuffer());
+                    byte[] result = messageDigest.digest();
+                    byte[] checkSum = new byte[8];
+                    System.arraycopy(result, 0, checkSum, 0, 8);
+
+                    BinaryStream digst = new BinaryStream();
+                    digst.put(buffer);
+                    digst.put(checkSum);
+
+                    buffer = player.getEncryptor().update(digst.getBuffer());
+                } catch (Exception e) {
+                    Server.getInstance().getLogger().warning("Encrypt Error!");
+                    return null;
+                }
+            }
+
             String identifier = this.identifiers.get(player.rawHashCode());
             EncapsulatedPacket pk = null;
             if (!needACK) {

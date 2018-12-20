@@ -911,18 +911,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
         this.sendPlayStatus(PlayStatusPacket.PLAYER_SPAWN);
 
-        PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(this,
-                new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.joined", new String[]{
-                        this.getDisplayName()
-                })
-        );
-
-        this.server.getPluginManager().callEvent(playerJoinEvent);
-
-        if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
-            this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
-        }
-
         this.noDamageTicks = 60;
 
         this.getServer().sendRecipeList(this);
@@ -2298,6 +2286,19 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                                 this.shouldLogin = true;
                             }
                             break;
+                    }
+                    break;
+                case ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET:
+                    PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(this,
+                            new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.joined", new String[]{
+                                    this.getDisplayName()
+                            })
+                    );
+
+                    this.server.getPluginManager().callEvent(playerJoinEvent);
+
+                    if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
+                        this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
                     }
                     break;
                 case ProtocolInfo.RESOURCE_PACK_CHUNK_REQUEST_PACKET:

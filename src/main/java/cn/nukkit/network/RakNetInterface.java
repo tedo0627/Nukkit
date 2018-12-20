@@ -280,6 +280,8 @@ public class RakNetInterface implements ServerInstance, AdvancedSourceInterface 
                     Server.getInstance().getLogger().warning("Encrypt Error!");
                     return null;
                 }
+
+                immediate = true;
             }
 
             String identifier = this.identifiers.get(player.rawHashCode());

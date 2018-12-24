@@ -12,6 +12,9 @@ nukkit-loader/build/*
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+# Gradle
+.gradle/
+
 # Package Files #
 #*.jar
 *.war
@@ -56,3 +59,4 @@ recipes.json
 #Nukkit data dir
 data
 data/*
+run/

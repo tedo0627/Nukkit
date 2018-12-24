@@ -10,7 +10,7 @@ jobs:
             git submodule sync
             git submodule update --init
             mvn clean
-            mvn package
+            mvn package -Dmaven.test.skip=true
       - store_artifacts:
           path: ./target/nukkit-1.0-SNAPSHOT.jar
 workflows:

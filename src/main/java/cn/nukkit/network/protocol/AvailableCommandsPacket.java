@@ -19,22 +19,22 @@ public class AvailableCommandsPacket extends DataPacket {
     public static final int ARG_TYPE_FLOAT = 0x02;
     public static final int ARG_TYPE_VALUE = 0x03;
     public static final int ARG_TYPE_WILDCARD_INT = 0x04;
-    public static final int ARG_TYPE_TARGET = 0x05;
-    public static final int ARG_TYPE_WILDCARD_TARGET = 0x06;
+    public static final int ARG_TYPE_OPERATOR = 0x05;
+    public static final int ARG_TYPE_TARGET = 0x06;
+    public static final int ARG_TYPE_WILDCARD_TARGET = 0x0a;
 
-    public static final int ARG_TYPE_STRING = 0x0f;
-    public static final int ARG_TYPE_POSITION = 0x10;
+    public static final int ARG_TYPE_STRING = 0x1a;
+    public static final int ARG_TYPE_POSITION = 0x1c;
 
-    public static final int ARG_TYPE_MESSAGE = 0x13;
-    public static final int ARG_TYPE_RAWTEXT = 0x15;
-    public static final int ARG_TYPE_JSON = 0x18;
-    public static final int ARG_TYPE_COMMAND = 0x1f;
+    public static final int ARG_TYPE_MESSAGE = 0x1f;
+    public static final int ARG_TYPE_RAWTEXT = 0x21;
+    public static final int ARG_TYPE_JSON = 0x24;
+    public static final int ARG_TYPE_COMMAND = 0x2b;
 
     public static final int ARG_FLAG_ENUM = 0x200000;
     public static final int ARG_FLAG_POSTFIX = 0x1000000;
-
-    public Map<String, CommandDataVersions> commands;
     public final Map<String, List<String>> softEnums = new HashMap<>();
+    public Map<String, CommandDataVersions> commands;
 
     @Override
     public byte pid() {

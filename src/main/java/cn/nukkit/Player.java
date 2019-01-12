@@ -2105,7 +2105,11 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                             ECPublicKey remotePublicKey = (ECPublicKey) factory.generatePublic(spec);
 
                             ECKeyPairGenerator gen = new ECKeyPairGenerator();
-                            gen.initialize(remotePublicKey.getParams(), SecureRandom.getInstance("Windows-PRNG"));
+                            String osName = System.getProperty("os.name").toLowerCase();
+                            if (osName.contains("windows"))
+                                gen.initialize(remotePublicKey.getParams(), SecureRandom.getInstance("Windows-PRNG"));
+                            else
+                                gen.initialize(remotePublicKey.getParams(), SecureRandom.getInstance("NativePRNG"));
                             KeyPair pair = gen.generateKeyPair();
 
                             ECPublicKey ecPublicKey = (ECPublicKey) pair.getPublic();

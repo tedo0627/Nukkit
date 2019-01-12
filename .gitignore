@@ -53,6 +53,10 @@ resource_packs/*
 creativeitems.json
 recipes.json
 
+# Gradle
+.gradle/*
+
 #Nukkit data dir
 data
 data/*
+run/*

@@ -78,7 +78,6 @@ public class NetworkInventoryAction {
                 break;
             case SOURCE_CRAFT_SLOT:
             case SOURCE_TODO:
-            case SOURCE_CRAFT_SLOT:
                 this.windowId = packet.getVarInt();
 
                 switch (this.windowId) {
@@ -111,7 +110,6 @@ public class NetworkInventoryAction {
                 break;
             case SOURCE_CRAFT_SLOT:
             case SOURCE_TODO:
-            case SOURCE_CRAFT_SLOT:
                 packet.putVarInt(this.windowId);
                 break;
         }
@@ -162,7 +160,6 @@ public class NetworkInventoryAction {
                 return new CreativeInventoryAction(this.oldItem, this.newItem, type);
             case SOURCE_CRAFT_SLOT:
             case SOURCE_TODO:
-            case SOURCE_CRAFT_SLOT:
                 //These types need special handling.
                 switch (this.windowId) {
                     case SOURCE_TYPE_CRAFTING_ADD_INGREDIENT:

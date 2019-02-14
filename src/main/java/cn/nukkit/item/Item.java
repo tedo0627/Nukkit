@@ -275,7 +275,7 @@ public class Item implements Cloneable, BlockID, ItemID {
 
             //TODO: list[SHULKER_SHELL] = ItemShulkerShell.class; //445
             list[BANNER] = ItemBanner.class; //446
-            
+
             list[TRIDENT] = ItemTrident.class; //455
 
             list[BEETROOT] = ItemBeetroot.class; //457
@@ -288,7 +288,7 @@ public class Item implements Cloneable, BlockID, ItemID {
             list[DRIED_KELP] = ItemDriedKelp.class; //464
 
             list[GOLDEN_APPLE_ENCHANTED] = ItemAppleGoldEnchanted.class; //466
-            
+
             list[TURTLE_SHELL] = ItemTurtleShell.class; //469
 
             list[RECORD_11] = ItemRecord11.class;
@@ -315,6 +315,10 @@ public class Item implements Cloneable, BlockID, ItemID {
     }
 
     private static final ArrayList<Item> creative = new ArrayList<>();
+
+    public static void registerItem(int id, Class<? extends Item> item) {
+        list[id] = item;
+    }
 
     private static void initCreativeItems() {
         clearCreativeItems();

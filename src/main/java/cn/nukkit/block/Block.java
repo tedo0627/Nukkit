@@ -255,7 +255,7 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
             list[PURPUR_BLOCK] = BlockPurpur.class; //201
 
             list[PURPUR_STAIRS] = BlockStairsPurpur.class; //203
-            
+
             list[UNDYED_SHULKER_BOX] = BlockUndyedShulkerBox.class; //205
             list[END_BRICKS] = BlockBricksEndStone.class; //206
 
@@ -301,57 +301,67 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
             list[OBSERVER] = BlockObserver.class; //251
 
             for (int id = 0; id < 256; id++) {
-                Class c = list[id];
-                if (c != null) {
-                    Block block;
-                    try {
-                        block = (Block) c.newInstance();
-                        try {
-                            Constructor constructor = c.getDeclaredConstructor(int.class);
-                            constructor.setAccessible(true);
-                            for (int data = 0; data < 16; ++data) {
-                                fullList[(id << 4) | data] = (Block) constructor.newInstance(data);
-                            }
-                            hasMeta[id] = true;
-                        } catch (NoSuchMethodException ignore) {
-                            for (int data = 0; data < 16; ++data) {
-                                fullList[(id << 4) | data] = block;
-                            }
-                        }
-                    } catch (Exception e) {
-                        Server.getInstance().getLogger().error("Error while registering " + c.getName(), e);
-                        for (int data = 0; data < 16; ++data) {
-                            fullList[(id << 4) | data] = new BlockUnknown(id, data);
-                        }
-                        return;
+                if (createFullList(id)) return;
+            }
+        }
+    }
+
+    private static boolean createFullList(int id) {
+        Class c = list[id];
+        if (c != null) {
+            Block block;
+            try {
+                block = (Block) c.newInstance();
+                try {
+                    Constructor constructor = c.getDeclaredConstructor(int.class);
+                    constructor.setAccessible(true);
+                    for (int data = 0; data < 16; ++data) {
+                        fullList[(id << 4) | data] = (Block) constructor.newInstance(data);
                     }
+                    hasMeta[id] = true;
+                } catch (NoSuchMethodException ignore) {
+                    for (int data = 0; data < 16; ++data) {
+                        fullList[(id << 4) | data] = block;
+                    }
+                }
+            } catch (Exception e) {
+                Server.getInstance().getLogger().error("Error while registering " + c.getName(), e);
+                for (int data = 0; data < 16; ++data) {
+                    fullList[(id << 4) | data] = new BlockUnknown(id, data);
+                }
+                return true;
+            }
 
-                    solid[id] = block.isSolid();
-                    transparent[id] = block.isTransparent();
-                    hardness[id] = block.getHardness();
-                    light[id] = block.getLightLevel();
+            solid[id] = block.isSolid();
+            transparent[id] = block.isTransparent();
+            hardness[id] = block.getHardness();
+            light[id] = block.getLightLevel();
 
-                    if (block.isSolid()) {
-                        if (block.isTransparent()) {
-                            if (block instanceof BlockLiquid || block instanceof BlockIce) {
-                                lightFilter[id] = 2;
-                            } else {
-                                lightFilter[id] = 1;
-                            }
-                        } else {
-                            lightFilter[id] = 15;
-                        }
+            if (block.isSolid()) {
+                if (block.isTransparent()) {
+                    if (block instanceof BlockLiquid || block instanceof BlockIce) {
+                        lightFilter[id] = 2;
                     } else {
                         lightFilter[id] = 1;
                     }
                 } else {
-                    lightFilter[id] = 1;
-                    for (int data = 0; data < 16; ++data) {
-                        fullList[(id << 4) | data] = new BlockUnknown(id, data);
-                    }
+                    lightFilter[id] = 15;
                 }
+            } else {
+                lightFilter[id] = 1;
+            }
+        } else {
+            lightFilter[id] = 1;
+            for (int data = 0; data < 16; ++data) {
+                fullList[(id << 4) | data] = new BlockUnknown(id, data);
             }
         }
+        return false;
+    }
+
+    public static void registerBlock(int id, Class<? extends Block> block) {
+        list[id] = block;
+        createFullList(id);
     }
 
     public static Block get(int id) {

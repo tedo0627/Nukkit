@@ -5,6 +5,7 @@
 plugins {
     id 'java'
     id 'maven'
+    id 'application'
     id "com.github.johnrengelman.shadow" version "4.0.3"
 }
 
@@ -42,6 +43,8 @@ group = 'cn.nukkit'
 version = '1.0-SNAPSHOT'
 description = 'Nukkit'
 sourceCompatibility = '1.8'
+
+mainClassName = 'cn.nukkit.Nukkit'
 
 configurations.all {
 }

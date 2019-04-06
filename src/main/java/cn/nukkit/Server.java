@@ -15,6 +15,7 @@ import cn.nukkit.entity.projectile.*;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.event.level.LevelInitEvent;
 import cn.nukkit.event.level.LevelLoadEvent;
+import cn.nukkit.event.server.BatchPacketsEvent;
 import cn.nukkit.event.server.PlayerDataSerializeEvent;
 import cn.nukkit.event.server.QueryRegenerateEvent;
 import cn.nukkit.inventory.CraftingManager;
@@ -652,6 +653,12 @@ public class Server {
             return;
         }
 
+        BatchPacketsEvent ev = new BatchPacketsEvent(players, packets, forceSync);
+        getPluginManager().callEvent(ev);
+        if (ev.isCancelled()) {
+            return;
+        }
+
         Timings.playerNetworkSendTimer.startTiming();
         byte[][] payload = new byte[packets.length * 2][];
         int size = 0;
@@ -800,10 +807,6 @@ public class Server {
                 this.rcon.close();
             }
 
-            if (nameLookup != null) {
-                nameLookup.close();
-            }
-
             this.getLogger().debug("Disabling all plugins");
             this.pluginManager.disablePlugins();
 
@@ -830,6 +833,10 @@ public class Server {
             for (SourceInterface interfaz : this.network.getInterfaces()) {
                 interfaz.shutdown();
                 this.network.unregisterInterface(interfaz);
+            }
+
+            if (nameLookup != null) {
+                nameLookup.close();
             }
 
             this.getLogger().debug("Disabling timings");
@@ -1610,7 +1617,7 @@ public class Server {
                 .putBoolean("OnGround", true)
                 .putBoolean("Invulnerable", false);
 
-        this.saveOfflinePlayerData(name, nbt);
+        this.saveOfflinePlayerData(name, nbt, true, runEvent);
         return nbt;
     }
 
@@ -1627,7 +1634,8 @@ public class Server {
     }
 
     public void saveOfflinePlayerData(String name, CompoundTag tag, boolean async) {
-        saveOfflinePlayerData(name, tag, async, true);
+        Optional<UUID> uuid = lookupName(name);
+        saveOfflinePlayerData(uuid.map(UUID::toString).orElse(name), tag, async, true);
     }
 
     private void saveOfflinePlayerData(String name, CompoundTag tag, boolean async, boolean runEvent) {
@@ -1639,7 +1647,7 @@ public class Server {
             }
 
             this.getScheduler().scheduleTask(new Task() {
-                protected boolean hasRun = false;
+                boolean hasRun = false;
 
                 @Override
                 public void onRun(int currentTick) {

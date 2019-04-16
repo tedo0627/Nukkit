@@ -1,5 +1,6 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.network.Network;
 import lombok.ToString;
 
 /**
@@ -18,6 +19,10 @@ public class FullChunkDataPacket extends DataPacket {
     public int chunkX;
     public int chunkZ;
     public byte[] data;
+
+    public FullChunkDataPacket() {
+        this.setChannel(Network.CHANNEL_WORLD_CHUNKS);
+    }
 
     @Override
     public void decode() {

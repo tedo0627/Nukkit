@@ -1,6 +1,7 @@
 package cn.nukkit.network.protocol;
 
 import cn.nukkit.math.Vector3f;
+import cn.nukkit.network.Network;
 import lombok.ToString;
 
 /**
@@ -20,6 +21,10 @@ public class MoveEntityAbsolutePacket extends DataPacket {
     public double pitch;
     public boolean onGround;
     public boolean teleport;
+
+    public MoveEntityAbsolutePacket() {
+        this.setChannel(Network.CHANNEL_MOVEMENT);
+    }
 
     @Override
     public byte pid() {

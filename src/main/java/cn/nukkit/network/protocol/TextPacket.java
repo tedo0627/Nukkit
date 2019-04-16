@@ -1,5 +1,6 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.network.Network;
 import lombok.ToString;
 
 /**
@@ -32,6 +33,10 @@ public class TextPacket extends DataPacket {
     public String[] parameters = new String[0];
     public boolean isLocalized = false;
     public String platformChatId = "";
+
+    public TextPacket() {
+        this.setChannel(Network.CHANNEL_TEXT);
+    }
 
     @Override
     public void decode() {

@@ -1,5 +1,6 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.network.Network;
 import lombok.ToString;
 
 @ToString
@@ -20,6 +21,10 @@ public class MoveEntityDeltaPacket extends DataPacket {
     public double yawDelta = 0;
     public double headYawDelta = 0;
     public double pitchDelta = 0;
+
+    public MoveEntityDeltaPacket() {
+        this.setChannel(Network.CHANNEL_MOVEMENT);
+    }
 
     @Override
     public byte pid() {

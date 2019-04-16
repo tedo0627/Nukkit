@@ -1,6 +1,7 @@
 package cn.nukkit.network.protocol;
 
 
+import cn.nukkit.network.Network;
 import lombok.ToString;
 
 /**
@@ -26,6 +27,10 @@ public class UpdateBlockPacket extends DataPacket {
     public int blockRuntimeId;
     public int flags;
     public int dataLayer = 0;
+
+    public UpdateBlockPacket() {
+        this.setChannel(Network.CHANNEL_BLOCKS);
+    }
 
     @Override
     public byte pid() {

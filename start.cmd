@@ -1,2 +1,2 @@
-cd build/libs
-java -jar nukkit-1.0-SNAPSHOT-all.jar
+cd target
+java -jar nukkit-1.0-SNAPSHOT.jar

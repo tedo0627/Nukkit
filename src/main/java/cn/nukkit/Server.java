@@ -72,7 +72,6 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.potion.Potion;
 import cn.nukkit.resourcepacks.ResourcePackManager;
 import cn.nukkit.scheduler.ServerScheduler;
-import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import cn.nukkit.utils.bugreport.ExceptionHandler;
 import co.aikar.timings.Timings;
@@ -298,7 +297,7 @@ public class Server {
                 InputStream conf = this.getClass().getClassLoader().getResourceAsStream("lang/" + lang + "/lang.ini");
                 if (conf != null) {
                     language = lang;
-                } else if(predefinedLanguage != null) {
+                } else if (predefinedLanguage != null) {
                     log.warn("No language found for predefined language: " + predefinedLanguage + ", please choose a valid language");
                     predefinedLanguage = null;
                 }
@@ -1014,11 +1013,11 @@ public class Server {
         pk.type = PlayerListPacket.TYPE_ADD;
         pk.entries = this.playerList.values().stream()
                 .map(p -> new PlayerListPacket.Entry(
-                p.getUniqueId(),
-                p.getId(),
-                p.getDisplayName(),
-                p.getSkin(),
-                p.getLoginChainData().getXUID()))
+                        p.getUniqueId(),
+                        p.getId(),
+                        p.getDisplayName(),
+                        p.getSkin(),
+                        p.getLoginChainData().getXUID()))
                 .toArray(PlayerListPacket.Entry[]::new);
 
         player.dataPacket(pk);
@@ -1656,23 +1655,7 @@ public class Server {
                 pluginManager.callEvent(event);
             }
 
-            this.getScheduler().scheduleTask(new Task() {
-                boolean hasRun = false;
-
-                @Override
-                public void onRun(int currentTick) {
-                    this.onCancel();
-                }
-
-                //doing it like this ensures that the playerdata will be saved in a server shutdown
-                @Override
-                public void onCancel() {
-                    if (!this.hasRun)    {
-                        this.hasRun = true;
-                        saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null));
-                    }
-                }
-            }, async);
+            saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null));
         }
     }
 

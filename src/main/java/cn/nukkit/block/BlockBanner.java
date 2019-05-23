@@ -4,7 +4,6 @@ import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityBanner;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBanner;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.level.Level;
 import cn.nukkit.math.AxisAlignedBB;
@@ -78,6 +77,14 @@ public class BlockBanner extends BlockTransparentMeta implements Faceable {
                     .putInt("y", (int) this.y)
                     .putInt("z", (int) this.z)
                     .putInt("Base", item.getDamage() & 0x0f);
+
+            if (item.hasCompoundTag()) {
+                CompoundTag tag = item.getNamedTag();
+                if (tag.contains("Patterns")) {
+                    nbt.put("Patterns", tag.getList("Patterns", CompoundTag.class).copy());
+                }
+            }
+
             new BlockEntityBanner(this.level.getChunk((int) this.x >> 4, (int) this.z >> 4), nbt);
 
             return true;

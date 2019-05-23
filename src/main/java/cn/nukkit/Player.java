@@ -2815,6 +2815,9 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                                 itemFrame.setItem(new ItemBlock(new BlockAir()));
                                 itemFrame.setItemRotation(0);
                                 this.getLevel().addSound(this, Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
+                            } else {
+                                this.getLevel().dropItem(block, block.toItem());
+                                this.getLevel().setBlock(block, Block.get(Block.AIR));
                             }
                         } else {
                             itemFrame.spawnTo(this);

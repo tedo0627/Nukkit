@@ -109,7 +109,11 @@ public class BlockBanner extends BlockTransparentMeta implements Faceable {
     public Item toItem() {
         BlockEntity blockEntity = this.getLevel().getBlockEntity(this);
         if (blockEntity instanceof BlockEntityBanner) {
-            return Item.get(Item.BANNER, ((BlockEntityBanner) blockEntity).getBaseColor() & 0xf);
+            Item item = Item.get(Item.BANNER, ((BlockEntityBanner) blockEntity).getBaseColor() & 0xf);
+            CompoundTag tag = new CompoundTag();
+            tag.putList(((BlockEntityBanner) blockEntity).getPatterns());
+            item.setNamedTag(tag);
+            return item;
         }
         return Item.get(Item.BANNER);
     }

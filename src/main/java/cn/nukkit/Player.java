@@ -2881,19 +2881,28 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     }
 
                     if (transactionPacket.isCraftingPart) {
-                        if (this.craftingTransaction == null) {
-                            this.craftingTransaction = new CraftingTransaction(this, actions);
-                        } else {
-                            for (InventoryAction action : actions) {
-                                this.craftingTransaction.addAction(action);
+                        try {
+                            if (this.craftingTransaction == null) {
+                                this.craftingTransaction = new CraftingTransaction(this, actions);
+                            } else {
+                                for (InventoryAction action : actions) {
+                                    this.craftingTransaction.addAction(action);
+                                }
                             }
-                        }
 
-                        if (this.craftingTransaction.getPrimaryOutput() != null) {
-                            //we get the actions for this in several packets, so we can't execute it until we get the result
+                            if (this.craftingTransaction.getPrimaryOutput() != null) {
+                                //we get the actions for this in several packets, so we can't execute it until we get the result
 
-                            this.craftingTransaction.execute();
-                            this.craftingTransaction = null;
+                                this.craftingTransaction.execute();
+                                this.craftingTransaction = null;
+                            }
+                        } catch (Exception e) {
+                            if (this.craftingTransaction != null) {
+                                for (Inventory inventory : this.craftingTransaction.getInventories()) {
+                                    inventory.sendContents(this);
+                                }
+                            }
+                            e.printStackTrace();
                         }
 
                         return;

@@ -274,7 +274,7 @@ public class BinaryStream {
     public Item getSlot() {
         int id = this.getVarInt();
 
-        if (id <= 0) {
+        if (id == 0) {
             return Item.get(0, 0, 0);
         }
         int auxValue = this.getVarInt();

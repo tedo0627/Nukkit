@@ -155,13 +155,13 @@ public class Anvil extends BaseLevelProvider {
         }
         stream.putByte((byte) count);
         for (int i = 0; i < count; i++) {
-            stream.putByte((byte) 0);
+            //stream.putByte((byte) 0);
             stream.put(sections[i].getBytes());
         }
         for (byte height : chunk.getHeightMapArray()) {
             stream.putByte(height);
         }
-        stream.put(PAD_256);
+        //stream.put(PAD_256);
         stream.put(chunk.getBiomeIdArray());
         stream.putByte((byte) 0);
         if (extraData != null) {

@@ -1,17 +1,17 @@
 package cn.nukkit.level.format.anvil;
 
 import cn.nukkit.block.Block;
+import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.format.anvil.util.BlockStorage;
 import cn.nukkit.level.format.anvil.util.NibbleArray;
 import cn.nukkit.level.format.generic.EmptyChunkSection;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.utils.Binary;
-import cn.nukkit.utils.ThreadCache;
-import cn.nukkit.utils.Utils;
-import cn.nukkit.utils.Zlib;
+import cn.nukkit.utils.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * author: MagicDroidX
@@ -319,14 +319,57 @@ public class ChunkSection implements cn.nukkit.level.format.ChunkSection {
     @Override
     public byte[] getBytes() {
         synchronized (storage) {
+            BinaryStream stream = new BinaryStream();
+            stream.putByte((byte) 8); //version
+            stream.putByte((byte) 1); //layer
 
-            byte[] ids = storage.getBlockIds();
+            stream.putByte((byte) ((8 << 1) | 1));
+
+            List<Integer> palettes = new ArrayList<>();
+
+            int[] ids = storage.getBlockIds();
             byte[] data = storage.getBlockData();
-            byte[] merged = new byte[ids.length + data.length];
+            int[] indexes = new int[ids.length];
 
-            System.arraycopy(ids, 0, merged, 0, ids.length);
-            System.arraycopy(data, 0, merged, ids.length, data.length);
-            return merged;
+            int p = Integer.MAX_VALUE;
+            int index = 0;
+            for (int i = 0; i < ids.length; ++i) {
+                int runtimeId = GlobalBlockPalette.getOrCreateRuntimeId(storage.getFullBlock(i));
+                //int runtimeId = GlobalBlockPalette.getOrCreateRuntimeId(258 << 4);
+
+                if (p != runtimeId) {
+                    index = palettes.indexOf(runtimeId);
+                    if (index == -1) {
+                        palettes.add(runtimeId);
+                        index = palettes.indexOf(runtimeId);
+                    }
+                }
+
+                indexes[i] = index;
+            }
+
+            /*
+            Palette palette = new Palette(indexes.length, false);
+            palette.addIndexIDs(indexes);
+
+            //stream.putByte(palette.getPaletteWord());
+            stream.put(palette.finish());
+
+            stream.putVarInt(palettes.size());
+            palettes.forEach(stream::putVarInt);
+
+            stream.putByte(palette.getPaletteWord());
+            */
+
+            /*
+            stream.put(indexes);
+            stream.putVarInt(palette.size());
+            for (int value : palette) {
+                stream.putVarInt(value);
+            }
+             */
+
+            return stream.getBuffer();
         }
     }
 

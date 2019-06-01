@@ -6,15 +6,15 @@ import java.util.Arrays;
 
 public class BlockStorage {
     private static final int SECTION_SIZE = 4096;
-    private final byte[] blockIds;
+    private final int[] blockIds;
     private final NibbleArray blockData;
 
     public BlockStorage() {
-        blockIds = new byte[SECTION_SIZE];
+        blockIds = new int[SECTION_SIZE];
         blockData = new NibbleArray(SECTION_SIZE);
     }
 
-    private BlockStorage(byte[] blockIds, NibbleArray blockData) {
+    private BlockStorage(int[] blockIds, NibbleArray blockData) {
         this.blockIds = blockIds;
         this.blockData = blockData;
     }
@@ -26,15 +26,19 @@ public class BlockStorage {
     }
 
     public int getBlockData(int x, int y, int z) {
-        return blockData.get(getIndex(x, y, z)) & 0xf;
+        return blockData.get(getIndex(x, y, z));
     }
 
     public int getBlockId(int x, int y, int z) {
-        return blockIds[getIndex(x, y, z)] & 0xFF;
+        return blockIds[getIndex(x, y, z)];
+    }
+
+    public int getBlockId(int index) {
+        return blockIds[index];
     }
 
     public void setBlockId(int x, int y, int z, int id) {
-        blockIds[getIndex(x, y, z)] = (byte) (id & 0xff);
+        blockIds[getIndex(x, y, z)] = id;
     }
 
     public void setBlockData(int x, int y, int z, int data) {
@@ -54,10 +58,9 @@ public class BlockStorage {
     }
 
     private int getAndSetFullBlock(int index, short value) {
-        Preconditions.checkArgument(value < 0xfff, "Invalid full block");
-        byte oldBlock = blockIds[index];
+        int oldBlock = blockIds[index];
         byte oldData = blockData.get(index);
-        byte newBlock = (byte) ((value & 0xff0) >> 4);
+        int newBlock = value >> 4;
         byte newData = (byte) (value & 0xf);
         if (oldBlock != newBlock) {
             blockIds[index] = newBlock;
@@ -65,25 +68,24 @@ public class BlockStorage {
         if (oldData != newData) {
             blockData.set(index, newData);
         }
-        return ((oldBlock & 0xff) << 4) | oldData;
+        return (oldBlock << 4) | oldData;
     }
 
-    private int getFullBlock(int index) {
-        byte block = blockIds[index];
+    public int getFullBlock(int index) {
+        int block = blockIds[index];
         byte data = blockData.get(index);
-        return ((block & 0xff) << 4) | data;
+        return (block << 4) | data;
     }
 
     private void setFullBlock(int index, short value) {
-        Preconditions.checkArgument(value < 0xfff, "Invalid full block");
-        byte block = (byte) ((value & 0xff0) >> 4);
+        byte block = (byte) (value >> 4);
         byte data = (byte) (value & 0xf);
 
         blockIds[index] = block;
         blockData.set(index, data);
     }
 
-    public byte[] getBlockIds() {
+    public int[] getBlockIds() {
         return Arrays.copyOf(blockIds, blockIds.length);
     }
 

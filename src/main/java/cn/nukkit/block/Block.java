@@ -46,14 +46,14 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
     @SuppressWarnings("unchecked")
     public static void init() {
         if (list == null) {
-            list = new Class[256];
-            fullList = new Block[4096];
-            light = new int[256];
-            lightFilter = new int[256];
-            solid = new boolean[256];
-            hardness = new double[256];
-            transparent = new boolean[256];
-            hasMeta = new boolean[256];
+            list = new Class[256 * 2];
+            fullList = new Block[4096 * 2];
+            light = new int[256 * 2];
+            lightFilter = new int[256 * 2];
+            solid = new boolean[256 * 2];
+            hardness = new double[256 * 2];
+            transparent = new boolean[256 * 2];
+            hasMeta = new boolean[256 * 2];
 
             list[AIR] = BlockAir.class; //0
             list[STONE] = BlockStone.class; //1
@@ -300,7 +300,7 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
 
             list[OBSERVER] = BlockObserver.class; //251
 
-            for (int id = 0; id < 256; id++) {
+            for (int id = 0; id < 512; id++) {
                 if (createFullList(id)) return;
             }
         }

@@ -23,7 +23,7 @@ public class LevelChunkPacket extends DataPacket {
     public long[] blobIds;
     public byte[] data;
 
-    public FullChunkDataPacket() {
+    public LevelChunkPacket() {
         this.setChannel(Network.CHANNEL_WORLD_CHUNKS);
     }
 

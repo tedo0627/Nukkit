@@ -140,15 +140,12 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
             pk.event = this.getHealth() <= 0 ? EntityEventPacket.DEATH_ANIMATION : EntityEventPacket.HURT_ANIMATION;
             Server.broadcastPacket(this.hasSpawned.values(), pk);
 
-<<<<<<< HEAD
             this.attackTime = 10;
             DamageCause cause = source.getCause();
             if (cause == DamageCause.ENTITY_ATTACK || cause == DamageCause.PROJECTILE) {
                 this.attackTime = 0;
             }
-=======
             this.attackTime = source.getAttackCooldown();
->>>>>>> upstream/master
 
             return true;
         } else {

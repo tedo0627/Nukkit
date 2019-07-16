@@ -46,10 +46,6 @@ public class BlockEntityBanner extends BlockEntitySpawnable {
                 .putInt("y", (int) this.y)
                 .putInt("z", (int) this.z)
                 .putInt("Base", getBaseColor())
-<<<<<<< HEAD
-                .putList(this.getPatterns());
-=======
                 .putList(namedTag.getList("Patterns"));
->>>>>>> upstream/master
     }
 }

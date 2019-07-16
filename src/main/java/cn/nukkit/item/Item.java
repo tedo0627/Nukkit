@@ -312,14 +312,10 @@ public class Item implements Cloneable, BlockID, ItemID {
 
     private static final ArrayList<Item> creative = new ArrayList<>();
 
-<<<<<<< HEAD
     public static void registerItem(int id, Class<? extends Item> item) {
         list[id] = item;
     }
 
-=======
-    @SuppressWarnings("unchecked")
->>>>>>> upstream/master
     private static void initCreativeItems() {
         clearCreativeItems();
 

@@ -140,11 +140,15 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
             pk.event = this.getHealth() <= 0 ? EntityEventPacket.DEATH_ANIMATION : EntityEventPacket.HURT_ANIMATION;
             Server.broadcastPacket(this.hasSpawned.values(), pk);
 
+<<<<<<< HEAD
             this.attackTime = 10;
             DamageCause cause = source.getCause();
             if (cause == DamageCause.ENTITY_ATTACK || cause == DamageCause.PROJECTILE) {
                 this.attackTime = 0;
             }
+=======
+            this.attackTime = source.getAttackCooldown();
+>>>>>>> upstream/master
 
             return true;
         } else {
@@ -205,7 +209,7 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
     public boolean entityBaseTick(int tickDiff) {
         Timings.livingEntityBaseTickTimer.startTiming();
         boolean isBreathing = !this.isInsideOfWater();
-        if (this instanceof Player && ((Player) this).isCreative()) {
+        if (this instanceof Player && (((Player) this).isCreative() || ((Player) this).isSpectator())) {
             isBreathing = true;
         }
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_BREATHING, isBreathing);
@@ -219,12 +223,12 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
                 this.attack(new EntityDamageEvent(this, DamageCause.SUFFOCATION, 1));
             }
 
-            if (this.isOnLadder()) {
+            if (this.isOnLadder() || this.hasEffect(Effect.LEVITATION)) {
                 this.resetFallDistance();
             }
 
             if (!this.hasEffect(Effect.WATER_BREATHING) && this.isInsideOfWater()) {
-                if (this instanceof EntityWaterAnimal || (this instanceof Player && ((Player) this).isCreative())) {
+                if (this instanceof EntityWaterAnimal || (this instanceof Player && (((Player) this).isCreative() || ((Player) this).isSpectator()))) {
                     this.setAirTicks(400);
                 } else {
                     hasUpdate = true;

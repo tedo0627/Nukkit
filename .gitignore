@@ -57,6 +57,6 @@ recipes.json
 .gradle/*
 
 #Nukkit data dir
-data
+data/
 data/*
 run/*
